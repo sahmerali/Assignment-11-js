@@ -13,7 +13,7 @@ const products = [
   { id: 12, title: "Pizza 04", category: "Pizza", price: 2500, rating: 5, image: "./images/Pizza 04.jpg" },
 ];
 
-// DOM elements
+
 const categories = [...new Set(products.map(p => p.category))];
 const categoryFilter = document.getElementById("categoryFilter");
 const ratingFilter = document.getElementById("ratingFilter");
