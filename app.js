@@ -13,7 +13,6 @@ const products = [
   { id: 12, title: "Pizza 04", category: "Pizza", price: 2500, rating: 5, image: "./images/Pizza 04.jpg" },
 ];
 
-
 const categories = [...new Set(products.map(p => p.category))];
 const categoryFilter = document.getElementById("categoryFilter");
 const ratingFilter = document.getElementById("ratingFilter");
@@ -24,12 +23,15 @@ const productList = document.getElementById("productList");
 const clearFiltersTop = document.getElementById("clearFiltersTop");
 const sortSelect = document.getElementById("sortSelect");
 const paginationEl = document.getElementById("pagination");
+const searchInput = document.getElementById("searchInput");
+const itemsPerPageSelect = document.getElementById("itemsPerPageSelect");
 
 let selectedCategory = [];
 let selectedRating = null;
 let currentSort = "";
 let currentPage = 1;
-const itemsPerPage = 6;
+let searchQuery = "";
+let itemsPerPage = 6; // default
 
 function initFilters() {
   categories.forEach(cat => {
@@ -60,6 +62,12 @@ function renderStars(rating) {
 
 function getFilteredProducts() {
   let data = [...products];
+
+  // Search filter
+  if (searchQuery.trim() !== "") {
+    data = data.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  }
+
   if (selectedCategory.length > 0) {
     data = data.filter(p => selectedCategory.includes(p.category));
   }
@@ -68,6 +76,7 @@ function getFilteredProducts() {
   }
   data = data.filter(p => p.price <= parseInt(priceRange.value, 10));
 
+  // Sorting
   if (currentSort === "priceAsc") data.sort((a, b) => a.price - b.price);
   if (currentSort === "priceDesc") data.sort((a, b) => b.price - a.price);
   if (currentSort === "ratingAsc") data.sort((a, b) => a.rating - b.rating);
@@ -81,14 +90,14 @@ function renderProducts() {
   const start = (currentPage - 1) * itemsPerPage;
   const paginatedData = data.slice(start, start + itemsPerPage);
 
-  productList.innerHTML = paginatedData.map(p => `
+  productList.innerHTML = paginatedData.length > 0 ? paginatedData.map(p => `
     <div class="bg-white p-4 rounded shadow text-center">
       <img src="${p.image}" alt="${p.title}" class="w-full h-40 object-cover mb-2 rounded"/>
       <h3 class="font-bold text-lg text-blue-600">${p.title}</h3>
       ${renderStars(p.rating)}
       <p class="text-lg mt-1 font-semibold">Rs ${p.price}</p>
     </div>
-  `).join("");
+  `).join("") : `<p class="text-center text-gray-500 w-full col-span-3">No products found</p>`;
 
   renderPagination(data.length);
 }
@@ -114,11 +123,15 @@ function clearAllFilters() {
   ratingFilter.querySelectorAll(".rating-star").forEach(star => star.classList.remove("text-red-500"));
   selectedCategory = [];
   selectedRating = null;
+  searchQuery = "";
+  searchInput.value = "";
   priceRange.value = priceRange.max;
   maxPriceText.textContent = priceRange.max;
   currentSort = "";
   sortSelect.value = "";
   currentPage = 1;
+  itemsPerPage = 6;
+  itemsPerPageSelect.value = "6";
   renderProducts();
 }
 
@@ -147,6 +160,18 @@ function addEventListeners() {
 
   sortSelect.addEventListener("change", () => {
     currentSort = sortSelect.value;
+    currentPage = 1;
+    renderProducts();
+  });
+
+  searchInput.addEventListener("input", () => {
+    searchQuery = searchInput.value;
+    currentPage = 1;
+    renderProducts();
+  });
+
+  itemsPerPageSelect.addEventListener("change", () => {
+    itemsPerPage = parseInt(itemsPerPageSelect.value, 10);
     currentPage = 1;
     renderProducts();
   });
